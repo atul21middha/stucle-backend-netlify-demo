@@ -2,6 +2,7 @@ const express = require("express");
 const serverless = require("serverless-http");
 const app = express();
 const router = express.Router();
+const { AccessToken } = require("livekit-server-sdk");
 
 let records = [];
 
@@ -16,7 +17,7 @@ router.post("/add", (req, res) => {
 });
 
 //delete existing record
-router.delete("/abc", (req, res) => {
+router.delete("/", (req, res) => {
   res.send("Deleted existing record");
 });
 
@@ -44,6 +45,27 @@ router.get("/demo", (req, res) => {
       email: "lily@gmail.com",
     },
   ]);
+});
+
+router.get("/api/token", (req, res) => {
+  const apiKey = "APIceR8UKdB2gud";
+  const apiSecret = "aGOhF8vMBvY9HeOndQWjV8XmzohiEfZpXBT1TEglGPR";
+  const roomName = req.query.room;
+  const participantName = req.query.username;
+
+  const at = new AccessToken(apiKey, apiSecret, {
+    identity: participantName,
+  });
+  at.addGrant({
+    roomJoin: true,
+    room: roomName,
+    canPublish: true,
+    canSubscribe: true,
+  });
+
+  const token = at.toJwt();
+  console.log("access token", token);
+  res.send({ token });
 });
 
 app.use("/.netlify/functions/api", router);
